@@ -1,0 +1,20 @@
+[build]
+  publish = "public"
+
+# =========================================================================
+# Netlify API Proxy Configuration
+# If you host your Python backend on Render, Railway, Fly.io, or VPS:
+# Replace "https://your-backend.onrender.com" below with your live backend URL!
+# Netlify will automatically proxy /api/* requests to your backend seamlessly.
+# =========================================================================
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://your-backend.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

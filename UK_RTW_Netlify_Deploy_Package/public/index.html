@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Right to Work Automated Bulk Verification (High-Speed)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1D70B8;
+            --primary-hover: #003078;
+            --success: #00703C;
+            --warning: #D4351C;
+            --limited: #E05E00;
+            --dark: #0B0C0C;
+            --gray-bg: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --border: #D8DDE0;
+            --muted: #505A5F;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--gray-bg); color: var(--dark); line-height: 1.5; padding-bottom: 60px; }
+        
+        header { background-color: #002D62; color: #FFFFFF; padding: 18px 32px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .logo-area { display: flex; align-items: center; gap: 14px; }
+        .crown-icon { font-size: 24px; background: rgba(255,255,255,0.15); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .header-title h1 { font-size: 19px; font-weight: 700; }
+        .header-title p { font-size: 12px; color: #BDC8D0; }
+
+        .container { max-width: 1320px; margin: 28px auto; padding: 0 20px; }
+
+        .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+        @media(max-width: 1080px) { .grid-layout { grid-template-columns: 1fr; } }
+
+        .card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.05); padding: 22px; }
+        .card-header { margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 16px; font-weight: 700; color: #002D62; }
+
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--dark); }
+        input[type="text"], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; transition: border 0.2s; outline: none; }
+        input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29, 112, 184, 0.15); }
+        
+        .upload-dropzone { border: 2px dashed #9CB1C1; background: #F1F6FB; border-radius: 8px; padding: 18px; text-align: center; cursor: pointer; transition: background 0.2s; margin-bottom: 14px; }
+        .upload-dropzone:hover { background: #E4EFF9; border-color: var(--primary); }
+        .upload-dropzone p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 10px 18px; border-radius: 6px; cursor: pointer; border: none; transition: all 0.2s; }
+        .btn-primary { background-color: var(--primary); color: #fff; width: 100%; font-size: 14px; padding: 12px; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background: #E6EDF2; color: #002D62; }
+        .btn-secondary:hover { background: #D5E1EA; }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover { background: #00562e; }
+
+        .speed-badge { background: #E0F2FE; color: #0369A1; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 12px; margin-left: 8px; }
+
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+        .kpi-box { background: #FFFFFF; border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+        .kpi-number { font-size: 24px; font-weight: 700; }
+        .kpi-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+        .table-container { overflow-x: auto; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border); max-height: 540px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
+        th { background: #002D62; color: #FFFFFF; font-weight: 600; padding: 10px 12px; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
+        td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:nth-child(even) { background-color: #FAFAFA; }
+
+        /* Mismatch Staff Highlight */
+        tr.row-mismatch { background-color: #FFF5F5 !important; }
+        tr.row-mismatch:hover { background-color: #FED7D7 !important; }
+        tr.row-mismatch td:first-child { border-left: 4px solid #D4351C; }
+
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .badge-limited { background: #FFF3EB; color: #C04E00; border: 1px solid #FFC9A3; }
+        .badge-success { background: #EDF7F1; color: var(--success); border: 1px solid #B8E4CB; }
+        .badge-danger { background: #FDECEC; color: var(--warning); border: 1px solid #F9BCBC; }
+
+        /* Allowed Hours Badges */
+        .badge-hours-20 { background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; }
+        .badge-hours-10 { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+        .badge-hours-full { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+        .badge-hours-none { background: #F1F5F9; color: #64748B; border: 1px solid #CBD5E1; }
+
+        .no-pdf-pill {
+            display: inline-block;
+            font-size: 10.5px;
+            color: #94A3B8;
+            background: #F1F5F9;
+            border: 1px solid #E2E8F0;
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #D8DDE0; }
+        .avatar-placeholder { width: 38px; height: 38px; border-radius: 50%; background: #E2E8F0; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #64748B; }
+
+        .progress-box { display: none; background: #EBF3FB; border: 1px solid #B0D0EE; border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+        .progress-bar-container { background: #D0E4F7; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+        .progress-bar-fill { background: linear-gradient(90deg, #1D70B8, #00A699); height: 100%; width: 0%; transition: width 0.15s ease-out; }
+
+        .file-status-badge { display: none; background: #E6F3EA; color: #00703C; border: 1px solid #B7DFCA; border-radius: 6px; padding: 6px 12px; font-size: 12px; margin-bottom: 12px; }
+
+        /* Employer Preset Buttons */
+        .employer-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .preset-chip { background: #F1F5F9; border: 1px solid #CBD5E1; color: #334155; padding: 4px 10px; border-radius: 16px; font-size: 11.5px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+        .preset-chip:hover { background: #E2E8F0; border-color: #94A3B8; }
+        .preset-chip.active { background: #002D62; color: #fff; border-color: #002D62; }
+
+        /* Filter bar */
+        .filter-bar { display: none; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+        .filter-tab { background: #F1F5F9; border: 1px solid #CBD5E1; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; color: #475569; transition: all 0.2s; }
+        .filter-tab:hover { background: #E2E8F0; }
+        .filter-tab.active { background: #002D62; color: #FFFFFF; border-color: #002D62; }
+        .filter-tab.tab-mismatch.active { background: #D4351C; border-color: #D4351C; color: #fff; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: #fff; width: 90%; max-width: 650px; border-radius: 12px; padding: 24px; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px; }
+        .close-btn { font-size: 24px; cursor: pointer; color: var(--muted); border: none; background: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo-area">
+        <div class="crown-icon">🏛️</div>
+        <div class="header-title">
+            <h1>UK Right to Work Automated Bulk Verification <span class="speed-badge">⚡ High-Speed Engine</span></h1>
+            <p>Official Home Office Checker & Statutory Excuse Audit Generator</p>
+        </div>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn btn-secondary" onclick="loadSampleData()">📂 Standard Sample</button>
+        <button class="btn btn-secondary" onclick="loadMultiEmployerSample()">🏢 Multi-Employer Sample</button>
+        <button class="btn btn-secondary" onclick="loadSampleWithMismatch()">⚠️ Sample with Mismatch</button>
+        <button class="btn btn-secondary" onclick="openApiSettings()" title="Configure Backend API Server (for Netlify / Remote Hosting)">⚙️ API Settings</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="grid-layout">
+        <!-- Left: Upload & Input Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h2>1. Staff & Employer Configuration</h2>
+                <span style="font-size: 11px; color: var(--muted);">12x Parallel Threads</span>
+            </div>
+
+            <!-- Employer Selection Box -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+                <label for="companyName" style="color: #002D62; font-size: 13.5px;">🏢 Default Employer / Company Name</label>
+                <input type="text" id="companyName" value="Sample LTD" placeholder="Enter company name appearing on official certificate">
+                
+                <div style="margin-top: 8px;">
+                    <span style="font-size: 11px; color: var(--muted); font-weight: 600;">Quick Presets:</span>
+                    <div class="employer-presets">
+                        <span class="preset-chip active" onclick="setEmployerPreset('Sample LTD')">Sample LTD</span>
+                        <span class="preset-chip" onclick="setEmployerPreset('Acme Healthcare Ltd')">Acme Healthcare Ltd</span>
+                        <span class="preset-chip" onclick="setEmployerPreset('Fortexo Ltd')">Fortexo Ltd</span>
+                        <span class="preset-chip" onclick="setEmployerPreset('NHS Trust Staffing')">NHS Trust Staffing</span>
+                        <span class="preset-chip" onclick="promptNewEmployer()">+ Add New</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 10px; font-size: 12px; color: #475569; display: flex; align-items: center; gap: 6px;">
+                    <input type="checkbox" id="useRowEmployer" checked style="width: auto; cursor: pointer;">
+                    <label for="useRowEmployer" style="margin-bottom: 0; font-weight: 500; cursor: pointer;">
+                        Use <b>Employer</b> column from CSV/Excel if specified per row
+                    </label>
+                </div>
+            </div>
+
+            <div class="upload-dropzone" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size: 26px;">📊</div>
+                <div style="font-weight: 600; font-size: 14px; color: var(--primary);">Click or Drag & Drop Excel / CSV</div>
+                <p>Supports .xlsx, .xls, .csv files (e.g. 200+ staff records)</p>
+                <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .txt, .tsv" style="display: none;" onchange="handleFileSelect(event)">
+            </div>
+
+            <div id="fileUploadStatus" class="file-status-badge">
+                <span id="fileUploadStatusText">File loaded successfully!</span>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="margin-bottom: 0;">Staff List Preview (CSV format):</label>
+                    <a href="javascript:void(0)" onclick="clearInput()" style="font-size: 11px; color: var(--primary); text-decoration: none;">Clear</a>
+                </div>
+                <textarea id="csvDataInput" rows="7" placeholder="Name,RTW Share Code,DOB,Employer&#10;MOAZ ELAHE,WMJ 4NS 7F9,1998-11-14,Sample LTD&#10;AREEJ FATIMA,WPY KN5 8KE,2002-04-15,Acme Healthcare Ltd"></textarea>
+            </div>
+
+            <button id="verifyBtn" class="btn btn-primary" onclick="startVerification()">
+                ⚡ Verify All Staff at Once & Generate Official PDFs
+            </button>
+        </div>
+
+        <!-- Right: Verification Results Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h2>2. Verification & Audit Results</h2>
+                <div id="exportBtnGroup" style="display: none; gap: 8px; flex-wrap: wrap;">
+                    <a id="btnDownloadAudit" href="/api/download/audit-pdf" class="btn btn-success" style="font-size: 12px; padding: 6px 12px; text-decoration: none;">📥 All Verified PDFs</a>
+                    <a id="btnDownloadZip" href="/api/download/zip" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; text-decoration: none;">📦 All Folders (ZIP)</a>
+                    <a id="btnDownloadCsv" href="/api/download/csv" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; text-decoration: none;">📊 Export CSV</a>
+                </div>
+            </div>
+
+            <!-- Dynamic Employer PDF Downloads Bar -->
+            <div id="employerDownloadsCard" style="display: none; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+                <div style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <span>🏢</span> Download Official PDF Certificates by Employer:
+                </div>
+                <div id="employerButtonsList" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            </div>
+
+            <!-- Progress Box -->
+            <div id="progressBox" class="progress-box">
+                <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 13px;">
+                    <span id="progressText">Connecting to UK Home Office service...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progressBarFill" class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="kpi-row" id="kpiRow" style="display: none;">
+                <div class="kpi-box">
+                    <div class="kpi-number" id="kpiTotal" style="color: var(--primary);">0</div>
+                    <div class="kpi-label">Total Checked</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-number" id="kpiContinuous" style="color: var(--success);">0</div>
+                    <div class="kpi-label">Continuous RTW</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-number" id="kpiLimited" style="color: var(--limited);">0</div>
+                    <div class="kpi-label">Time-Limited RTW</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="kpi-number" id="kpiIssues" style="color: var(--warning);">0</div>
+                    <div class="kpi-label">Mismatches / Failed</div>
+                </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar" id="filterBar">
+                <span style="font-size: 12px; color: var(--muted); font-weight: 600;">Filter:</span>
+                <span class="filter-tab active" id="tabAll" onclick="setFilter('all')">All Staff (0)</span>
+                <span class="filter-tab" id="tabVerified" onclick="setFilter('verified')">✓ Verified (0)</span>
+                <span class="filter-tab tab-mismatch" id="tabMismatch" onclick="setFilter('mismatch')">⚠️ Mismatches (0)</span>
+            </div>
+
+            <!-- Table of Results -->
+            <div id="emptyState" style="text-align: center; padding: 48px 20px; color: var(--muted);">
+                <div style="font-size: 40px; margin-bottom: 12px;">📑</div>
+                <div style="font-weight: 600; font-size: 15px; color: var(--dark);">No verification run yet</div>
+                <p style="font-size: 13px; margin-top: 4px;">Upload an Excel/CSV file or click "Standard Sample" and press "Verify All Staff at Once".</p>
+            </div>
+
+            <div id="tableWrapper" class="table-container" style="display: none;">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Photo</th>
+                            <th>Staff Name</th>
+                            <th>Share Code</th>
+                            <th>DOB</th>
+                            <th>Employer</th>
+                            <th>Allowed Hours</th>
+                            <th>RTW Status</th>
+                            <th>Visa Expiry</th>
+                            <th>HO Ref</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for viewing full candidate details -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle" style="font-size: 16px; font-weight: 700; color: #002D62;">Staff RTW Details</h3>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+    let globalResults = [];
+    let currentFilter = 'all';
+    let apiBaseUrl = localStorage.getItem('rtw_api_base') || '';
+
+    function getApiUrl(endpoint) {
+        if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
+        return apiBaseUrl ? `${apiBaseUrl.replace(/\/+$/, '')}${endpoint}` : endpoint;
+    }
+
+    function openApiSettings() {
+        const current = apiBaseUrl || '(Default: Same Domain / Netlify Proxy)';
+        const input = prompt("Enter your Python Backend API URL (leave empty for default Netlify proxy):\n\nExample: https://your-backend.onrender.com", apiBaseUrl);
+        if (input !== null) {
+            apiBaseUrl = input.trim();
+            if (apiBaseUrl) {
+                localStorage.setItem('rtw_api_base', apiBaseUrl);
+                alert(`✓ Backend API connected: ${apiBaseUrl}`);
+            } else {
+                localStorage.removeItem('rtw_api_base');
+                alert(`✓ Reset to default (relative / Netlify proxy)`);
+            }
+            updateExportLinks();
+        }
+    }
+
+    function updateExportLinks() {
+        const auditBtn = document.getElementById('btnDownloadAudit');
+        const zipBtn = document.getElementById('btnDownloadZip');
+        const csvBtn = document.getElementById('btnDownloadCsv');
+        if (auditBtn) auditBtn.href = getApiUrl('/api/download/audit-pdf');
+        if (zipBtn) zipBtn.href = getApiUrl('/api/download/zip');
+        if (csvBtn) csvBtn.href = getApiUrl('/api/download/csv');
+    }
+
+    function setEmployerPreset(name) {
+        document.getElementById('companyName').value = name;
+        document.querySelectorAll('.preset-chip').forEach(c => {
+            c.classList.toggle('active', c.innerText === name);
+        });
+    }
+
+    function promptNewEmployer() {
+        const name = prompt("Enter new Employer / Company Name:");
+        if (name && name.trim()) {
+            setEmployerPreset(name.trim());
+        }
+    }
+
+    function loadSampleData() {
+        const sampleCSV = `Name,RTW Share Code,DOB,Employer
+MOAZ ELAHE,WMJ 4NS 7F9,1998-11-14,Sample LTD
+AREEJ FATIMA,WPY KN5 8KE,2002-04-15,Sample LTD`;
+        document.getElementById('csvDataInput').value = sampleCSV;
+        document.getElementById('fileUploadStatus').style.display = 'none';
+        setEmployerPreset('Sample LTD');
+    }
+
+    function loadMultiEmployerSample() {
+        const multiCSV = `Name,RTW Share Code,DOB,Employer
+MOAZ ELAHE,WMJ 4NS 7F9,1998-11-14,Acme Healthcare Ltd
+AREEJ FATIMA,WPY KN5 8KE,2002-04-15,Fortexo Ltd
+MOAZ ELAHE,WMJ 4NS 7F9,1998-11-14,NHS Trust Staffing
+AREEJ FATIMA,WPY KN5 8KE,2002-04-15,Sample LTD`;
+        document.getElementById('csvDataInput').value = multiCSV;
+        document.getElementById('fileUploadStatus').style.display = 'none';
+    }
+
+    function loadSampleWithMismatch() {
+        const testCSV = `Name,RTW Share Code,DOB,Employer
+MOAZ ELAHE,WMJ 4NS 7F9,1998-11-14,Acme Healthcare Ltd
+AREEJ FATIMA,WPY KN5 8KE,2002-04-15,Fortexo Ltd
+INVALID CANDIDATE,W99 999 999,2000-01-01,Sample LTD
+WRONG DOB STAFF,WMJ 4NS 7F9,1980-01-01,Acme Healthcare Ltd`;
+        document.getElementById('csvDataInput').value = testCSV;
+        document.getElementById('fileUploadStatus').style.display = 'none';
+    }
+
+    function clearInput() {
+        document.getElementById('csvDataInput').value = '';
+        document.getElementById('fileUploadStatus').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+    }
+
+    async function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusBox = document.getElementById('fileUploadStatus');
+        const statusText = document.getElementById('fileUploadStatusText');
+        statusBox.style.display = 'block';
+        statusText.innerText = `Reading file "${file.name}"...`;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const resp = await fetch(getApiUrl('/api/upload-file'), {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await resp.json();
+            if (!resp.ok) {
+                throw new Error(data.error || 'Failed to process file.');
+            }
+
+            document.getElementById('csvDataInput').value = data.csv_text;
+            statusText.innerText = `✓ Successfully loaded ${data.count} staff records from "${file.name}"`;
+            statusBox.style.background = '#E6F3EA';
+            statusBox.style.color = '#00703C';
+        } catch (e) {
+            statusText.innerText = `⚠ Upload Error: ${e.message}`;
+            statusBox.style.background = '#FDECEC';
+            statusBox.style.color = '#D4351C';
+        }
+    }
+
+    function parseCSVText(text) {
+        const lines = text.trim().split(/\r?\n/);
+        if (lines.length === 0) return [];
+
+        const staffList = [];
+        let startIndex = 0;
+
+        const header = lines[0].toLowerCase();
+        let nameIdx = 0, codeIdx = 1, dobIdx = 2, empIdx = -1;
+
+        if (header.includes('name') || header.includes('share') || header.includes('code')) {
+            startIndex = 1;
+            const parts = lines[0].split(',').map(s => s.trim().toLowerCase());
+            parts.forEach((p, idx) => {
+                if (p.includes('name')) nameIdx = idx;
+                else if (p.includes('share') || p.includes('code')) codeIdx = idx;
+                else if (p.includes('dob') || p.includes('birth')) dobIdx = idx;
+                else if (p.includes('employer') || p.includes('company') || p.includes('client')) empIdx = idx;
+            });
+        }
+
+        const useRowEmployer = document.getElementById('useRowEmployer').checked;
+        const defaultCompany = document.getElementById('companyName').value.trim() || 'Sample LTD';
+
+        for (let i = startIndex; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const parts = line.split(',').map(s => s.trim());
+            if (parts.length >= 3) {
+                let rowEmployer = defaultCompany;
+                if (useRowEmployer && empIdx !== -1 && parts[empIdx]) {
+                    rowEmployer = parts[empIdx];
+                }
+                staffList.push({
+                    name: parts[nameIdx] || parts[0],
+                    share_code: parts[codeIdx] || parts[1],
+                    dob: parts[dobIdx] || parts[2],
+                    employer: rowEmployer
+                });
+            }
+        }
+        return staffList;
+    }
+
+    let kpiStats = { total: 0, continuous: 0, limited: 0, issues: 0 };
+
+    async function startVerification() {
+        const text = document.getElementById('csvDataInput').value.trim();
+        if (!text) {
+            alert('Please enter or upload staff records first.');
+            return;
+        }
+
+        const staffList = parseCSVText(text);
+        if (staffList.length === 0) {
+            alert('Could not parse any valid staff records. Please check format: Name, RTW Share Code, DOB, [Employer]');
+            return;
+        }
+
+        const defaultCompany = document.getElementById('companyName').value.trim() || 'Sample LTD';
+
+        // Reset UI
+        document.getElementById('verifyBtn').disabled = true;
+        document.getElementById('verifyBtn').innerText = '⚡ Verifying in Parallel (12x Speed)...';
+        document.getElementById('progressBox').style.display = 'block';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('tableWrapper').style.display = 'block';
+        document.getElementById('exportBtnGroup').style.display = 'none';
+        document.getElementById('employerDownloadsCard').style.display = 'none';
+        document.getElementById('filterBar').style.display = 'flex';
+        document.getElementById('kpiRow').style.display = 'grid';
+
+        document.getElementById('progressBarFill').style.width = '2%';
+        document.getElementById('progressText').innerText = `Starting parallel verification of ${staffList.length} staff records...`;
+        document.getElementById('progressPercent').innerText = '0%';
+
+        const tbody = document.getElementById('resultsTableBody');
+        tbody.innerHTML = '';
+        globalResults = new Array(staffList.length);
+        kpiStats = { total: 0, continuous: 0, limited: 0, issues: 0 };
+        updateKPIs();
+
+        try {
+            updateExportLinks();
+            const resp = await fetch(getApiUrl('/api/check-bulk-stream'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ staff: staffList, company_name: defaultCompany })
+            });
+
+            if (!resp.ok) {
+                throw new Error(`Server returned status ${resp.status}`);
+            }
+
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const jsonStr = line.slice(6).trim();
+                        if (!jsonStr) continue;
+                        try {
+                            const eventData = JSON.parse(jsonStr);
+                            handleStreamEvent(eventData);
+                        } catch (err) {
+                            console.error('SSE JSON error:', err, jsonStr);
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('progressBarFill').style.width = '100%';
+            document.getElementById('progressPercent').innerText = '100%';
+            document.getElementById('progressText').innerText = `✓ Complete! All ${staffList.length} staff verified and official PDFs ready.`;
+            document.getElementById('exportBtnGroup').style.display = 'flex';
+
+        } catch (e) {
+            alert('Verification Error: ' + e.message);
+        } finally {
+            document.getElementById('verifyBtn').disabled = false;
+            document.getElementById('verifyBtn').innerText = '⚡ Verify All Staff at Once & Generate Official PDFs';
+            setTimeout(() => {
+                document.getElementById('progressBox').style.display = 'none';
+            }, 2500);
+        }
+    }
+
+    function handleStreamEvent(data) {
+        if (data.type === 'progress') {
+            const percent = data.percent;
+            document.getElementById('progressBarFill').style.width = `${percent}%`;
+            document.getElementById('progressPercent').innerText = `${Math.round((data.completed / data.total) * 100)}%`;
+            document.getElementById('progressText').innerText = `Verified ${data.completed} of ${data.total} (${Math.round((data.completed / data.total) * 100)}%) - ${data.item.verified_name || data.item.input_name}`;
+
+            globalResults[data.index] = data.item;
+            addTableRow(data.item, data.index, data.completed);
+            updateStatsFor(data.item);
+        } else if (data.type === 'status') {
+            document.getElementById('progressBarFill').style.width = `${data.percent}%`;
+            document.getElementById('progressPercent').innerText = `${data.percent}%`;
+            document.getElementById('progressText').innerText = data.message;
+        } else if (data.type === 'done') {
+            document.getElementById('progressBarFill').style.width = '100%';
+            document.getElementById('progressPercent').innerText = '100%';
+            document.getElementById('progressText').innerText = `✓ All ${data.count} staff verified! Official PDFs generated.`;
+            document.getElementById('exportBtnGroup').style.display = 'flex';
+
+            renderEmployerButtons(data.by_employer);
+        }
+    }
+
+    function renderEmployerButtons(byEmployer) {
+        const container = document.getElementById('employerDownloadsCard');
+        const list = document.getElementById('employerButtonsList');
+        list.innerHTML = '';
+
+        if (!byEmployer || Object.keys(byEmployer).length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        for (const [empName, info] of Object.entries(byEmployer)) {
+            const btn = document.createElement('a');
+            btn.href = getApiUrl(`/api/download/employer-pdf/${encodeURIComponent(empName)}`);
+            btn.className = 'btn btn-secondary';
+            btn.style.cssText = 'font-size: 12px; padding: 6px 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;';
+            btn.innerHTML = `<span>📄</span> <b>${escapeHtml(empName)}</b> <span style="background: #CBD5E1; color: #1E293B; border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: 700;">${info.count} staff</span>`;
+            list.appendChild(btn);
+        }
+
+        container.style.display = 'block';
+    }
+
+    function updateStatsFor(r) {
+        kpiStats.total++;
+        const statusLower = (r.status || '').toLowerCase();
+        const isMismatch = !r.success || statusLower.includes('mismatch') || statusLower.includes('invalid') || statusLower.includes('error');
+
+        if (r.success && !isMismatch) {
+            if (statusLower.includes('limited')) {
+                kpiStats.limited++;
+            } else {
+                kpiStats.continuous++;
+            }
+        } else {
+            kpiStats.issues++;
+        }
+        updateKPIs();
+    }
+
+    function updateKPIs() {
+        document.getElementById('kpiTotal').innerText = kpiStats.total;
+        document.getElementById('kpiContinuous').innerText = kpiStats.continuous;
+        document.getElementById('kpiLimited').innerText = kpiStats.limited;
+        document.getElementById('kpiIssues').innerText = kpiStats.issues;
+
+        const verifiedCount = kpiStats.continuous + kpiStats.limited;
+        document.getElementById('tabAll').innerText = `All Staff (${kpiStats.total})`;
+        document.getElementById('tabVerified').innerText = `✓ Verified (${verifiedCount})`;
+        document.getElementById('tabMismatch').innerText = `⚠️ Mismatches (${kpiStats.issues})`;
+    }
+
+    function setFilter(type) {
+        currentFilter = type;
+        document.getElementById('tabAll').classList.toggle('active', type === 'all');
+        document.getElementById('tabVerified').classList.toggle('active', type === 'verified');
+        document.getElementById('tabMismatch').classList.toggle('active', type === 'mismatch');
+
+        const rows = document.querySelectorAll('#resultsTableBody tr');
+        rows.forEach(tr => {
+            const status = tr.getAttribute('data-status');
+            if (type === 'all') {
+                tr.style.display = '';
+            } else if (type === 'verified') {
+                tr.style.display = (status === 'verified') ? '' : 'none';
+            } else if (type === 'mismatch') {
+                tr.style.display = (status === 'mismatch') ? '' : 'none';
+            }
+        });
+    }
+
+    function formatHoursBadge(hoursStr, isMismatch) {
+        if (isMismatch) {
+            return `<span class="badge badge-danger" title="Details mismatch - hours unverified">⚠️ N/A</span>`;
+        }
+        const s = (hoursStr || '').toLowerCase();
+        if (s.includes('20 hour') || s.includes('20 hr')) {
+            return `<span class="badge badge-hours-20" title="${escapeHtml(hoursStr)}">🕒 20 hrs/wk</span>`;
+        } else if (s.includes('10 hour') || s.includes('10 hr')) {
+            return `<span class="badge badge-hours-10" title="${escapeHtml(hoursStr)}">🕒 10 hrs/wk</span>`;
+        } else if (s.includes('full-time') || s.includes('full time') || s.includes('no limit')) {
+            return `<span class="badge badge-hours-full" title="${escapeHtml(hoursStr)}">💼 Full-time</span>`;
+        } else if (s.includes('no work')) {
+            return `<span class="badge badge-danger" title="${escapeHtml(hoursStr)}">🚫 No Work</span>`;
+        }
+        return `<span class="badge badge-hours-none" title="${escapeHtml(hoursStr)}">${escapeHtml(hoursStr || 'Full-time')}</span>`;
+    }
+
+    function addTableRow(r, originalIdx, displayCount) {
+        const tbody = document.getElementById('resultsTableBody');
+        const statusLower = (r.status || '').toLowerCase();
+        const isMismatch = !r.success || statusLower.includes('mismatch') || statusLower.includes('invalid') || statusLower.includes('error');
+
+        let badgeClass = 'badge-danger';
+        let statusText = r.status || 'Mismatch';
+
+        if (r.success && !isMismatch) {
+            if (statusLower.includes('limited')) {
+                badgeClass = 'badge-limited';
+            } else {
+                badgeClass = 'badge-success';
+            }
+        } else {
+            statusText = '⚠️ ' + statusText;
+        }
+
+        let avatarHtml = '<div class="avatar-placeholder">👤</div>';
+        if (r.photo_base64) {
+            avatarHtml = `<img src="data:image/jpeg;base64,${r.photo_base64}" class="avatar" alt="Photo">`;
+        }
+
+        const hoursBadgeHtml = formatHoursBadge(r.allowed_hours, isMismatch);
+
+        // Action Buttons: Only show PDF download if verified/matched
+        let actionButtonsHtml = '';
+        if (isMismatch) {
+            actionButtonsHtml = `
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="openDetailsModal(${originalIdx})">Details</button>
+                    <span class="no-pdf-pill" title="No official PDF can be generated for mismatched candidate records">No PDF</span>
+                </div>
+            `;
+        } else {
+            actionButtonsHtml = `
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="openDetailsModal(${originalIdx})">Details</button>
+                    <a href="${getApiUrl('/api/download/certificate/' + originalIdx)}" class="btn btn-primary" style="padding: 4px 8px; font-size: 11px; text-decoration: none;" title="Download Official Home Office Certificate">PDF</a>
+                </div>
+            `;
+        }
+
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-status', isMismatch ? 'mismatch' : 'verified');
+        if (isMismatch) {
+            tr.className = 'row-mismatch';
+        }
+
+        tr.innerHTML = `
+            <td><b>${displayCount}</b></td>
+            <td>${avatarHtml}</td>
+            <td><b>${escapeHtml(r.verified_name || r.input_name)}</b></td>
+            <td><code>${escapeHtml(r.input_share_code)}</code></td>
+            <td>${escapeHtml(r.input_dob)}</td>
+            <td><span style="font-weight: 600; color: #002D62;">${escapeHtml(r.company_name || r.employer)}</span></td>
+            <td>${hoursBadgeHtml}</td>
+            <td><span class="badge ${badgeClass}">${escapeHtml(statusText)}</span></td>
+            <td><b>${escapeHtml(r.visa_expiry || (isMismatch ? '-' : 'Continuous'))}</b></td>
+            <td><small>${escapeHtml(r.reference_number || '-')}</small></td>
+            <td>${actionButtonsHtml}</td>
+        `;
+
+        if (currentFilter === 'verified' && isMismatch) {
+            tr.style.display = 'none';
+        } else if (currentFilter === 'mismatch' && !isMismatch) {
+            tr.style.display = 'none';
+        }
+
+        tbody.appendChild(tr);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function openDetailsModal(index) {
+        const r = globalResults[index];
+        if (!r) return;
+
+        const statusLower = (r.status || '').toLowerCase();
+        const isMismatch = !r.success || statusLower.includes('mismatch') || statusLower.includes('invalid') || statusLower.includes('error');
+
+        const name = escapeHtml(r.verified_name || r.input_name);
+        document.getElementById('modalTitle').innerText = name + ' - Home Office Right to Work Details';
+
+        let photoHtml = '';
+        if (r.photo_base64) {
+            photoHtml = `<img src="data:image/jpeg;base64,${r.photo_base64}" style="width: 100px; height: 125px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc; margin-right: 16px;">`;
+        }
+
+        let condHtml = '<li>No special conditions specified.</li>';
+        if (r.conditions && r.conditions.length > 0) {
+            condHtml = r.conditions.map(c => `<li>${escapeHtml(c)}</li>`).join('');
+        }
+
+        let restHtml = '<li>No restrictions listed.</li>';
+        if (r.restrictions && r.restrictions.length > 0) {
+            restHtml = r.restrictions.map(x => `<li style="color: #D4351C;">${escapeHtml(x)}</li>`).join('');
+        }
+
+        let mismatchWarning = '';
+        let downloadActionHtml = `<a href="${getApiUrl('/api/download/certificate/' + index)}" class="btn btn-success" style="text-decoration: none;">📥 Download Official PDF Certificate</a>`;
+
+        if (isMismatch) {
+            mismatchWarning = `
+                <div style="background: #FFF5F5; border: 1px solid #FEB2B2; border-left: 4px solid #D4351C; padding: 12px; border-radius: 6px; margin-bottom: 14px; color: #9B1C1C;">
+                    <b>⚠️ Details Mismatch / Verification Issue:</b>
+                    <p style="font-size: 12.5px; margin-top: 4px;">${escapeHtml(r.error_message || 'The share code and date of birth provided do not match Home Office records.')}</p>
+                </div>
+            `;
+            downloadActionHtml = `<span class="no-pdf-pill" style="font-size: 12px; padding: 6px 12px;">🚫 Official PDF Not Available for Mismatched Records</span>`;
+        }
+
+        document.getElementById('modalBody').innerHTML = `
+            ${mismatchWarning}
+            <div style="display: flex; margin-bottom: 16px;">
+                ${photoHtml}
+                <div>
+                    <p><b>Status:</b> ${escapeHtml(r.status)}</p>
+                    <p><b>Allowed Hours:</b> <b style="color: #1D70B8;">${escapeHtml(r.allowed_hours || 'N/A')}</b></p>
+                    <p><b>Visa Expiry Date:</b> <b>${escapeHtml(r.visa_expiry || 'Continuous')}</b></p>
+                    <p><b>Valid From:</b> ${escapeHtml(r.valid_from || 'N/A')}</p>
+                    <p><b>Share Code:</b> ${escapeHtml(r.input_share_code)}</p>
+                    <p><b>Date of Birth:</b> ${escapeHtml(r.input_dob)}</p>
+                    <p><b>Employer Checked:</b> <b style="color: #002D62;">${escapeHtml(r.company_name || r.employer)}</b></p>
+                    <p><b>Home Office Ref:</b> ${escapeHtml(r.reference_number || '-')}</p>
+                    <p><b>Verified Date:</b> ${escapeHtml(r.check_date || '-')}</p>
+                </div>
+            </div>
+            <div style="background: #F8F9FA; padding: 12px; border-radius: 6px; margin-bottom: 14px;">
+                <b>Home Office Statement:</b>
+                <p style="font-size: 13px; margin-top: 4px;">${escapeHtml(r.rtw_summary || 'Verification details recorded.')}</p>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <b>Conditions:</b>
+                <ul style="padding-left: 20px; font-size: 12px; margin-top: 4px;">${condHtml}</ul>
+            </div>
+            <div style="margin-bottom: 14px;">
+                <b>Restrictions:</b>
+                <ul style="padding-left: 20px; font-size: 12px; margin-top: 4px;">${restHtml}</ul>
+            </div>
+            <div style="text-align: right; border-top: 1px solid var(--border); padding-top: 12px;">
+                ${downloadActionHtml}
+            </div>
+        `;
+
+        document.getElementById('detailsModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('detailsModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('detailsModal');
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    };
+
+    window.addEventListener('DOMContentLoaded', loadSampleData);
+</script>
+
+</body>
+</html>
